@@ -12,6 +12,6 @@ FROM golang:alpine3.18
 COPY --from=builderimage /go/src/o11y_e2e/o11y_e2e /app/
 WORKDIR /app
 
-EXPOSE      9141
+EXPOSE      9927
 USER        nobody
 ENTRYPOINT  [ "./o11y_e2e" ]

@@ -52,8 +52,8 @@ dockers:
     - "--label=org.opencontainers.image.title={{.ProjectName}}"
     - "--label=org.opencontainers.image.revision={{.FullCommit}}"
     - "--label=org.opencontainers.image.version={{.Version}}"
-    - "--label=org.opencontainers.image.source=https://github.com/linode-obs/go_project_template"
-    - "--label=org.opencontainers.image.description='go_project_template description TODO'"
+    - "--label=org.opencontainers.image.source=https://github.com/linode-obs/o11y_e2e"
+    - "--label=org.opencontainers.image.description='o11y_e2e description TODO'"
     - "--label=org.opencontainers.image.licenses=MIT"
     - "--platform=linux/amd64"
     dockerfile: "Dockerfile"
@@ -68,8 +68,8 @@ dockers:
     - "--label=org.opencontainers.image.title={{.ProjectName}}"
     - "--label=org.opencontainers.image.revision={{.FullCommit}}"
     - "--label=org.opencontainers.image.version={{.Version}}"
-    - "--label=org.opencontainers.image.source=https://github.com/linode-obs/go_project_template"
-    - "--label=org.opencontainers.image.description='go_project_template description TODO'"
+    - "--label=org.opencontainers.image.source=https://github.com/linode-obs/o11y_e2e"
+    - "--label=org.opencontainers.image.description='o11y_e2e description TODO'"
     - "--label=org.opencontainers.image.licenses=MIT"
     - "--platform=linux/arm64"
     dockerfile: "Dockerfile"
@@ -78,7 +78,7 @@ nfpms:
      formats:
       - deb
       - rpm
-     package_name: "go_project_template"
+     package_name: "o11y_e2e"
      section: "default"
      priority: "extra"
      replaces: []
@@ -88,18 +88,18 @@ nfpms:
      conflicts: []
      maintainer: "Will Bollock <linode-obs@gmail.com>"
      description: |
-       go_project_template description TODO
-     homepage: "https://github.com/linode-obs/go_project_template"
+       o11y_e2e description TODO
+     homepage: "https://github.com/linode-obs/o11y_e2e"
      license: "MIT"
      contents:
      # provided by goreleaser
-     - src: ./dist/go_project_template_linux_amd64_v1/go_project_template
-       dst: /usr/local/bin/go_project_template
-     - src: ./nfpm/systemd/go_project_template.service
-       dst: /etc/systemd/system/go_project_template.service
+     - src: ./dist/o11y_e2e_linux_amd64_v1/o11y_e2e
+       dst: /usr/local/bin/o11y_e2e
+     - src: ./nfpm/systemd/o11y_e2e.service
+       dst: /etc/systemd/system/o11y_e2e.service
        type: config
-     - src: ./nfpm/etc/default/go_project_template
-       dst: /etc/default/go_project_template
+     - src: ./nfpm/etc/default/o11y_e2e
+       dst: /etc/default/o11y_e2e
        type: config
      scripts:
         postinstall: ./nfpm/scripts/postinstall.sh

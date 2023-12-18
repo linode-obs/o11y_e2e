@@ -1,0 +1,105 @@
+# Make sure to check the documentation at https://goreleaser.com
+before:
+  hooks:
+    - go mod tidy
+    - go test -v ./...
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -X main.Version={{.Version}} -X main.Commit={{.Commit}} -X main.BuildDate={{ .CommitDate }}
+    main: ./cmd/main.go
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else if eq .Arch "darwin" }}Darwin
+      {{- else if eq .Arch "linux" }}Linux
+      {{- else if eq .Arch "windows" }}Windows
+      {{- else }}{{ .Arch }}{{ end }}
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+dockers:
+  # build latest and specific tag version images
+  # https://goreleaser.com/cookbooks/multi-platform-docker-images/#other-things-to-pay-attention-to
+  - image_templates:
+      - "ghcr.io/linode-obs/{{.ProjectName}}:{{ .Tag }}"
+      - "ghcr.io/linode-obs/{{.ProjectName}}:{{ .Tag }}-amd64"
+      - "ghcr.io/linode-obs/{{.ProjectName}}:latest" # keep latest as linux/amd64
+    use: buildx
+    goos: linux
+    goarch: amd64
+    build_flag_templates:
+    - "--pull"
+    - "--label=org.opencontainers.image.created={{.Date}}"
+    - "--label=org.opencontainers.image.title={{.ProjectName}}"
+    - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+    - "--label=org.opencontainers.image.version={{.Version}}"
+    - "--label=org.opencontainers.image.source=https://github.com/linode-obs/go_project_template"
+    - "--label=org.opencontainers.image.description='go_project_template description TODO'"
+    - "--label=org.opencontainers.image.licenses=MIT"
+    - "--platform=linux/amd64"
+    dockerfile: "Dockerfile"
+  - image_templates:
+      - "ghcr.io/linode-obs/{{.ProjectName}}:{{ .Tag }}-linux-arm64"
+    use: buildx
+    goos: linux
+    goarch: arm64
+    build_flag_templates:
+    - "--pull"
+    - "--label=org.opencontainers.image.created={{.Date}}"
+    - "--label=org.opencontainers.image.title={{.ProjectName}}"
+    - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+    - "--label=org.opencontainers.image.version={{.Version}}"
+    - "--label=org.opencontainers.image.source=https://github.com/linode-obs/go_project_template"
+    - "--label=org.opencontainers.image.description='go_project_template description TODO'"
+    - "--label=org.opencontainers.image.licenses=MIT"
+    - "--platform=linux/arm64"
+    dockerfile: "Dockerfile"
+nfpms:
+  -  id: default
+     formats:
+      - deb
+      - rpm
+     package_name: "go_project_template"
+     section: "default"
+     priority: "extra"
+     replaces: []
+     dependencies: []
+     recommends: []
+     suggests: []
+     conflicts: []
+     maintainer: "Will Bollock <linode-obs@gmail.com>"
+     description: |
+       go_project_template description TODO
+     homepage: "https://github.com/linode-obs/go_project_template"
+     license: "MIT"
+     contents:
+     # provided by goreleaser
+     - src: ./dist/go_project_template_linux_amd64_v1/go_project_template
+       dst: /usr/local/bin/go_project_template
+     - src: ./nfpm/systemd/go_project_template.service
+       dst: /etc/systemd/system/go_project_template.service
+       type: config
+     - src: ./nfpm/etc/default/go_project_template
+       dst: /etc/default/go_project_template
+       type: config
+     scripts:
+        postinstall: ./nfpm/scripts/postinstall.sh

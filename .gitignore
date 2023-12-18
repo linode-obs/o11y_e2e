@@ -8,8 +8,8 @@
 *.so
 *.dylib
 
-# go_project_template binary
-go_project_template
+# o11y_e2e binary
+o11y_e2e
 
 # Test binary, built with `go test -c`
 *.test

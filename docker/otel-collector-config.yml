@@ -1,0 +1,106 @@
+exporters:
+  file/rotation:
+    format: json
+    path: /var/log/otelcol/otel.json
+    rotation:
+      localtime: false
+      max_backups: 10
+      max_days: 3
+      max_megabytes: 100
+  loki/prod:
+    endpoint: http://loki:3100/loki/api/v1/push
+    retry_on_failure:
+      initial_interval: 5s
+      max_elapsed_time: 30s
+      max_interval: 15s
+    sending_queue:
+      enabled: true
+      num_consumers: 50
+      queue_size: 5000
+      storage: file_storage
+    tls:
+      insecure: true
+extensions:
+  file_storage:
+    compaction:
+      directory: /var/lib/otelcol
+      max_transaction_size: 65536
+      on_rebound: true
+      on_start: true
+    directory: /var/lib/otelcol
+    timeout: 1s
+  health_check:
+    endpoint: :13133
+    path: /health/status
+    tls:
+      insecure: true
+  memory_ballast:
+    size_in_percentage: 50
+
+processors:
+  batch:
+    send_batch_max_size: 0
+    send_batch_size: 8192
+    timeout: 200ms
+  filter/bad_clients:
+    error_mode: ignore
+    logs:
+      log_record: []
+  memory_limiter:
+    check_interval: 5s
+    limit_percentage: 75
+    spike_limit_percentage: 10
+  resource:
+    attributes:
+    - action: insert
+      key: loki.resource.labels
+      value: instance, datacenter, filename, path, unit, environment, component, cluster, logicalcluster
+    - action: insert
+      key: loki.format
+      value: raw
+  transform/timestamps:
+    error_mode: ignore
+    log_statements:
+    - context: log
+      statements:
+      - set(time, Now()) where time > Now()
+
+receivers:
+  filelog:
+    include:
+    - /var/log/syslog
+    include_file_name: false
+    include_file_path: true
+    operators:
+    - from: attributes["log.file.path"]
+      to: resource["path"]
+      type: move
+    resource:
+      component: otelgw
+      datacenter: testdc
+      environment: production
+      instance: otelcol
+    start_at: end
+    storage: file_storage
+service:
+  extensions:
+  - health_check
+  - file_storage
+  - memory_ballast
+  pipelines:
+    logs:
+      exporters:
+      - loki/prod
+      processors:
+      - memory_limiter
+      - filter/bad_clients
+      - transform/timestamps
+      - resource
+      - batch
+      receivers:
+      - otlp
+      - filelog
+
+  telemetry:
+    metrics:
+      address: localhost:8888
